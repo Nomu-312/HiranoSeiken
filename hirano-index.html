@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+  <title>Spotify Music</title>
+ 
+  <link rel="stylesheet" href="hirano-style.css">
+</head>
+ 
+<body>
+ 
+  <header>
+    <h1>🎵 Spotify Music</h1>
+ 
+    <div class="search-box">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="曲名・アーティスト名を入力"
+      >
+      <button onclick="searchMusic()">検索</button>
+    </div>
+  </header>
+ 
+  <main>
+ 
+    <!-- 検索結果 -->
+    <section>
+      <h2>検索結果</h2>
+      <div id="searchResults" class="card-container"></div>
+    </section>
+ 
+    <!-- 曲 TOP5 -->
+    <section>
+      <h2>🎵 曲 TOP5</h2>
+      <div id="popularSongs"></div>
+    </section>
+ 
+    <!-- アーティスト TOP5 -->
+    <section>
+      <h2>👤 アーティスト TOP5</h2>
+      <div id="popularArtists"></div>
+    </section>
+ 
+    <!-- アルバム TOP5 -->
+    <section>
+      <h2>💿 アルバム TOP5</h2>
+      <div id="popularAlbums"></div>
+    </section>
+ 
+    <!-- 曲詳細 -->
+    <section>
+      <h2>曲の詳細</h2>
+      <div id="songDetail"></div>
+    </section>
+ 
+  </main>
+ 
+  <script src="hirano-script.js"></script>
+ 
+</body>
+</html>
