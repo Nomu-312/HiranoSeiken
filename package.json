@@ -1,24 +1,11 @@
 {
-  "name": "hiranoseiken",
-  "version": "1.0.0",
-  "description": "",
-  "main": "hirano-script.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Nomu-312/HiranoSeiken.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/Nomu-312/HiranoSeiken/issues"
-  },
-  "homepage": "https://github.com/Nomu-312/HiranoSeiken#readme",
-  "dependencies": {
-    "express": "^5.2.1"
-  }
+"name": "hirano-spotify-music",
+"version": "1.0.0",
+"scripts": {
+"start": "node hirano-server.js"
+},
+"dependencies": {
+"dotenv": "^16.4.7",
+"express": "^4.21.2"
+}
 }
