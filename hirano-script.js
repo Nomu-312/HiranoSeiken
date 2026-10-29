@@ -1,6 +1,6 @@
 async function searchMusic() {
  
-  const keyword = document.getElementById("searchInput").value;
+  const keyword = document.getElementById("searchInput").value.trim();
  
   if (!keyword) {
     alert("検索キーワードを入力してください");
@@ -12,17 +12,21 @@ async function searchMusic() {
     const response = await fetch(
       `/api/search?q=${encodeURIComponent(keyword)}`
     );
- 
+
     const data = await response.json();
- 
+
+    if (!response.ok) {
+      throw new Error(data.error || `検索に失敗しました (${response.status})`);
+    }
+
     displaySearchResults(data);
- 
+
     createRankings(data);
  
   } catch (error) {
  
     console.error(error);
-    alert("検索に失敗しました");
+    alert(error.message || "検索に失敗しました");
  
   }
 }

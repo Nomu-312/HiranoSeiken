@@ -1,15 +1,20 @@
 const express = require("express");
 const path = require("path");
+require("dotenv").config();
  
 const app = express();
  
 const PORT = 3000;
  
- 
-// Spotifyの情報
-const CLIENT_ID = "ここにClient ID";
-const CLIENT_SECRET = "ここにClient Secret";
- 
+const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
+const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
+
+if (!CLIENT_ID || !CLIENT_SECRET) {
+  console.error(
+    "Spotifyの認証情報がありません。.envにSPOTIFY_CLIENT_IDとSPOTIFY_CLIENT_SECRETを設定してください。"
+  );
+  process.exit(1);
+}
  
 let accessToken = "";
 let tokenExpiresAt = 0;
@@ -17,7 +22,11 @@ let tokenExpiresAt = 0;
  
 // HTML・CSS・JavaScriptを公開
 app.use(express.static(path.join(__dirname)));
- 
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "hirano-index.html"));
+});
+
  
 // Spotifyのアクセストークンを取得
 async function getAccessToken() {
@@ -54,18 +63,18 @@ async function getAccessToken() {
     }
   );
  
- 
   if (!response.ok) {
- 
-    throw new Error(
-      "Spotify認証に失敗しました"
-    );
- 
+    const details = await response.text();
+    throw new Error(`Spotify認証に失敗しました (${response.status}): ${details}`);
   }
  
  
   const data =
     await response.json();
+
+  if (!data.access_token || !data.expires_in) {
+    throw new Error("Spotifyから有効なアクセストークンが返されませんでした");
+  }
  
  
   accessToken =
@@ -155,7 +164,7 @@ app.get("/api/search", async (req, res) => {
  
     res.status(500).json({
       error:
-        "検索に失敗しました"
+        "Spotify検索に失敗しました。サーバーのターミナルに表示されたエラーを確認してください。"
     });
  
   }
