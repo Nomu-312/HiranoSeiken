@@ -343,3 +343,245 @@ async function loadRankings() {
 document.addEventListener("DOMContentLoaded", () => {
   loadRankings();
 });
+
+
+// ===================================
+// ガチャ機能
+// ===================================
+
+// ガチャ履歴を取得
+function getGachaHistory() {
+
+  return JSON.parse(
+    localStorage.getItem("gachaHistory") || "[]"
+  );
+
+}
+
+
+// 今日の日付を取得（日本の端末のローカル日付）
+function getTodayDate() {
+
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+
+}
+
+
+// ガチャ結果を表示
+function displayGachaResult(track) {
+
+  const container =
+    document.getElementById("gachaResult");
+
+  const image =
+    track.image || "";
+
+  container.innerHTML = `
+    <div class="song-card">
+
+      <h3>🎉 今日の当選曲！</h3>
+
+      ${
+        image
+          ? `<img src="${escapeHTML(image)}" alt="ジャケット画像">`
+          : ""
+      }
+
+      <h3>${escapeHTML(track.name)}</h3>
+
+      <p>${escapeHTML(track.artists.join(", "))}</p>
+
+      <a href="${escapeHTML(track.url)}"
+         target="_blank"
+         rel="noopener noreferrer">
+        Spotifyで聴く
+      </a>
+
+    </div>
+  `;
+
+}
+
+
+// ガチャ履歴を表示
+function displayGachaHistory() {
+
+  const container =
+    document.getElementById("gachaHistory");
+
+  const history = getGachaHistory();
+
+  container.innerHTML = "";
+
+  if (history.length === 0) {
+
+    container.innerHTML =
+      "<p>まだガチャ履歴はありません。</p>";
+
+    return;
+  }
+
+  history.forEach((item, index) => {
+
+    container.innerHTML += `
+      <div class="ranking-item">
+
+        ${
+          item.image
+            ? `<img src="${escapeHTML(item.image)}" alt="">`
+            : ""
+        }
+
+        <div>
+          <strong>${escapeHTML(item.name)}</strong>
+
+          <p>${escapeHTML(item.artists.join(", "))}</p>
+
+          <small>${escapeHTML(item.date)}</small>
+
+          <br>
+
+          <a href="${escapeHTML(item.url)}"
+             target="_blank"
+             rel="noopener noreferrer">
+            Spotifyで聴く
+          </a>
+        </div>
+
+      </div>
+    `;
+
+  });
+
+}
+
+
+// ガチャを回す
+async function playGacha() {
+
+  const button =
+    document.getElementById("gachaButton");
+
+  const today = getTodayDate();
+
+  const history = getGachaHistory();
+
+  // 今日すでに回しているか確認
+  if (history.some(item => item.date === today)) {
+
+    alert("今日のガチャはもう回しています！");
+
+    button.disabled = true;
+
+    return;
+  }
+
+  try {
+
+    button.disabled = true;
+    button.textContent = "抽選中...";
+
+    const response =
+      await fetch("/api/gacha");
+
+    const track =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(track.error || "ガチャに失敗しました");
+    }
+
+    // 保存する曲情報
+    const result = {
+
+      id: track.id,
+
+      name: track.name,
+
+      artists: track.artists.map(a => a.name),
+
+      image:
+        track.album.images.length > 0
+          ? track.album.images[0].url
+          : "",
+
+      url: track.external_urls.spotify,
+
+      date: getTodayDate()
+
+    };
+
+    // 履歴に追加
+    history.unshift(result);
+
+    localStorage.setItem(
+      "gachaHistory",
+      JSON.stringify(history)
+    );
+
+    // 結果と履歴を表示
+    displayGachaResult(result);
+
+    displayGachaHistory();
+
+    button.textContent = "明日また挑戦してね！";
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(error.message || "ガチャに失敗しました");
+
+    button.disabled = false;
+    button.textContent = "🎵 ガチャを回す！";
+
+  }
+
+}
+
+
+// サイト起動時のガチャ確認
+function loadGacha() {
+
+  const button =
+    document.getElementById("gachaButton");
+
+  const today = getTodayDate();
+
+  const history = getGachaHistory();
+
+  // 履歴を表示
+  displayGachaHistory();
+
+  // 今日の結果があるか確認
+  const todayResult =
+    history.find(item => item.date === today);
+
+  if (todayResult) {
+
+    displayGachaResult(todayResult);
+
+    button.disabled = true;
+    button.textContent = "明日また挑戦してね！";
+
+  }
+
+}
+
+
+// ボタンにイベントを設定
+document.addEventListener("DOMContentLoaded", () => {
+
+  document
+    .getElementById("gachaButton")
+    .addEventListener("click", playGacha);
+
+  loadGacha();
+
+});

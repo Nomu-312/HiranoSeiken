@@ -213,6 +213,131 @@ app.get("/api/rankings", async (req, res) => {
   }
 });
 
+// ランダム曲ガチャAPI
+app.get("/api/gacha", async (req, res) => {
+
+  try {
+
+    const genres = [
+      "pop",
+      "rock",
+      "jazz",
+      "classical",
+      "country",
+      "electronic",
+      "folk",
+      "metal",
+      "reggae",
+      "soul",
+      "hip-hop",
+      "disco",
+      "blues",
+      "indie"
+    ];
+
+    // 候補曲を保存する配列
+    let allTracks = [];
+
+    // 10回ランダム検索
+    for (let i = 0; i < 10; i++) {
+
+      // ジャンルをランダムに選択
+      const genreIndex =
+        Math.floor(Math.random() * genres.length);
+
+      const genre = genres[genreIndex];
+
+      // 検索位置をランダムに決定
+      const offset =
+        Math.floor(Math.random() * 1000);
+
+      const params = new URLSearchParams({
+        q: `genre:${genre}`,
+        type: "track",
+        limit: "10",
+        offset: String(offset),
+        market: "JP"
+      });
+
+      const data = await spotifyAPI(
+        `search?${params.toString()}`
+      );
+
+      allTracks.push(...data.tracks.items);
+
+    }
+
+    // 重複する曲を除外
+    const uniqueTracks = [
+      ...new Map(
+        allTracks.map(track => [track.id, track])
+      ).values()
+    ];
+
+    if (uniqueTracks.length === 0) {
+      return res.status(404).json({
+        error: "曲が見つかりませんでした"
+      });
+    }
+
+    // 乱数で1曲を抽選
+    const randomIndex =
+      Math.floor(Math.random() * uniqueTracks.length);
+
+    const selectedTrack =
+      uniqueTracks[randomIndex];
+
+    res.json(selectedTrack);
+
+  } catch (error) {
+
+    console.error("ガチャエラー:", error);
+
+    res.status(500).json({
+      error: "ガチャに失敗しました"
+    });
+
+  }
+
+});
+// ガチャ機能
+app.get("/api/gacha", async (req, res) => {
+  try {
+    const genres = ["pop", "rock", "jazz", "hip-hop", "indie"];
+
+    // ランダムなジャンルを選ぶ
+    const randomGenre =
+      genres[Math.floor(Math.random() * genres.length)];
+
+    // Spotifyから曲を取得
+    const randomOffset = Math.floor(Math.random() * 50);
+
+    const data = await spotifyAPI(
+      `search?q=genre:${randomGenre}&type=track&limit=50&offset=${randomOffset}&market=JP`
+    );
+
+    const tracks = data.tracks.items;
+
+    if (!tracks || tracks.length === 0) {
+      return res.status(404).json({
+        error: "ガチャで曲を取得できませんでした"
+      });
+    }
+
+    // 取得した曲からランダムに1曲選ぶ
+    const randomIndex = Math.floor(Math.random() * tracks.length);
+    const selectedTrack = tracks[randomIndex];
+
+    res.json(selectedTrack);
+
+  } catch (error) {
+    console.error("ガチャエラー:", error);
+
+    res.status(500).json({
+      error: "ガチャの曲を取得できませんでした"
+    });
+  }
+});
 // サーバー起動
 app.listen(PORT, () => {
  

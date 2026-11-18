@@ -177,3 +177,59 @@ h2 {
     width: 80%;
   }
 }
+
+/* ガチャ画面 */
+#gachaSection {
+  text-align: center;
+  margin: 40px auto;
+  padding: 25px;
+  background: #f0f7ee;
+  border-radius: 15px;
+}
+
+/* ガチャボタン */
+#gachaButton {
+  background: #1db954;
+  color: white;
+  border: none;
+  padding: 15px 35px;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 20px;
+}
+
+#gachaButton:hover {
+  background: #168f40;
+}
+
+#gachaButton:disabled {
+  background: #888;
+  cursor: not-allowed;
+}
+
+/* ガチャ結果 */
+#gachaResult {
+  margin: 25px auto;
+}
+
+#gachaResult .song-card {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  max-width: 350px;
+  margin: auto;
+}
+
+#gachaResult img {
+  width: 200px;
+  max-width: 100%;
+  border-radius: 10px;
+}
+
+/* ガチャ履歴 */
+#gachaHistory {
+  margin-top: 20px;
+  text-align: left;
+}
