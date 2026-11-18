@@ -303,14 +303,16 @@ app.get("/api/gacha", async (req, res) => {
 // ジャンル別ガチャ
 app.get("/api/gacha", async (req, res) => {
   try {
-    const allowedGenres = [
-      "pop",
-      "rock",
-      "jazz",
-      "hip-hop",
-      "indie",
-      "classical"
-    ];
+const allowedGenres = [
+  "j-pop",
+  "k-pop",
+  "pop",
+  "rock",
+  "jazz",
+  "hip-hop",
+  "indie",
+  "classical"
+];
 
     const genre = req.query.genre;
 
