@@ -50,22 +50,31 @@
       <div id="popularAlbums"></div>
     </section>
    
-     <!-- ガチャ機能 -->
     <section id="gachaSection">
-      <h2>🎰 今日の1曲ガチャ</h2>
+  <h2>🎰 今日の1曲ガチャ</h2>
 
-      <p>何が出るかは運次第！今日の1曲を引き当てよう！</p>
+  <p>好きなジャンルを選んで、今日の1曲を引き当てよう！</p>
 
-     <button id="gachaButton">
+  <select id="gachaGenre">
+    <option value="pop">POP</option>
+    <option value="rock">ROCK</option>
+    <option value="jazz">JAZZ</option>
+    <option value="hip-hop">HIP-HOP</option>
+    <option value="indie">INDIE</option>
+    <option value="classical">CLASSICAL</option>
+  </select>
+
+  <br>
+
+  <button id="gachaButton" onclick="playGacha()">
     🎵 ガチャを回す！
-     </button>
+  </button>
 
-     <div id="gachaResult"></div>
+  <div id="gachaResult"></div>
 
-     <h3>📜 ガチャ履歴</h3>
-
-     <div id="gachaHistory"></div>
-    </section>
+  <h3>📜 ガチャ履歴</h3>
+  <div id="gachaHistory"></div>
+</section>
  
  
   </main>

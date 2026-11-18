@@ -178,7 +178,6 @@ h2 {
   }
 }
 
-/* ガチャ画面 */
 #gachaSection {
   text-align: center;
   margin: 40px auto;
@@ -187,7 +186,14 @@ h2 {
   border-radius: 15px;
 }
 
-/* ガチャボタン */
+#gachaGenre {
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  margin: 15px;
+}
+
 #gachaButton {
   background: #1db954;
   color: white;
@@ -200,18 +206,9 @@ h2 {
   margin: 20px;
 }
 
-#gachaButton:hover {
-  background: #168f40;
-}
-
 #gachaButton:disabled {
   background: #888;
   cursor: not-allowed;
-}
-
-/* ガチャ結果 */
-#gachaResult {
-  margin: 25px auto;
 }
 
 #gachaResult .song-card {
@@ -219,7 +216,7 @@ h2 {
   padding: 20px;
   border-radius: 15px;
   max-width: 350px;
-  margin: auto;
+  margin: 20px auto;
 }
 
 #gachaResult img {
@@ -228,8 +225,11 @@ h2 {
   border-radius: 10px;
 }
 
-/* ガチャ履歴 */
-#gachaHistory {
-  margin-top: 20px;
+.history-item {
+  background: white;
+  padding: 12px;
+  margin: 10px auto;
+  border-radius: 10px;
+  max-width: 500px;
   text-align: left;
 }

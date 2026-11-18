@@ -300,31 +300,43 @@ app.get("/api/gacha", async (req, res) => {
   }
 
 });
-// ガチャ機能
+// ジャンル別ガチャ
 app.get("/api/gacha", async (req, res) => {
   try {
-    const genres = ["pop", "rock", "jazz", "hip-hop", "indie"];
+    const allowedGenres = [
+      "pop",
+      "rock",
+      "jazz",
+      "hip-hop",
+      "indie",
+      "classical"
+    ];
 
-    // ランダムなジャンルを選ぶ
-    const randomGenre =
-      genres[Math.floor(Math.random() * genres.length)];
+    const genre = req.query.genre;
 
-    // Spotifyから曲を取得
-    const randomOffset = Math.floor(Math.random() * 50);
-
-    const data = await spotifyAPI(
-      `search?q=genre:${randomGenre}&type=track&limit=50&offset=${randomOffset}&market=JP`
-    );
-
-    const tracks = data.tracks.items;
-
-    if (!tracks || tracks.length === 0) {
-      return res.status(404).json({
-        error: "ガチャで曲を取得できませんでした"
+    // ジャンルの確認
+    if (!allowedGenres.includes(genre)) {
+      return res.status(400).json({
+        error: "正しいジャンルを選択してください"
       });
     }
 
-    // 取得した曲からランダムに1曲選ぶ
+    // ランダムな検索位置
+    const randomOffset = Math.floor(Math.random() * 50);
+
+    const data = await spotifyAPI(
+      `search?q=${encodeURIComponent("genre:" + genre)}&type=track&limit=50&offset=${randomOffset}&market=JP`
+    );
+
+    const tracks = data.tracks?.items || [];
+
+    if (tracks.length === 0) {
+      return res.status(404).json({
+        error: "このジャンルの曲を取得できませんでした"
+      });
+    }
+
+    // ランダムに1曲選ぶ
     const randomIndex = Math.floor(Math.random() * tracks.length);
     const selectedTrack = tracks[randomIndex];
 
@@ -338,6 +350,7 @@ app.get("/api/gacha", async (req, res) => {
     });
   }
 });
+
 // サーバー起動
 app.listen(PORT, () => {
  
