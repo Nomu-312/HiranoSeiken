@@ -249,3 +249,29 @@ h2 {
 #gachaResetButton:hover {
   background: #555;
 }
+
+.rating-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.rating-buttons button {
+  padding: 10px 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  background: white;
+  font-size: 15px;
+}
+
+.rating-buttons button.selected {
+  background: #d9f2df;
+  border-color: #24633c;
+  font-weight: bold;
+}
+
+#likedPlaylistSection {
+  margin-top: 30px;
+}
