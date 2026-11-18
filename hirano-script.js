@@ -20,8 +20,6 @@ async function searchMusic() {
     }
 
     displaySearchResults(data);
-
-    createRankings(data);
  
   } catch (error) {
  
@@ -303,3 +301,45 @@ function escapeHTML(value) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
+// サイト起動時にランキングを自動取得
+async function loadRankings() {
+
+  try {
+
+    const response = await fetch("/api/rankings");
+
+    if (!response.ok) {
+      throw new Error("ランキング取得に失敗しました");
+    }
+
+    const data = await response.json();
+
+    // 取得したデータからTOP5を表示
+    createRankings({
+      tracks: { items: data.tracks },
+      artists: { items: data.artists },
+      albums: { items: data.albums }
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    document.getElementById("popularSongs").innerHTML =
+      "<p>曲ランキングを取得できませんでした。</p>";
+
+    document.getElementById("popularArtists").innerHTML =
+      "<p>アーティストランキングを取得できませんでした。</p>";
+
+    document.getElementById("popularAlbums").innerHTML =
+      "<p>アルバムランキングを取得できませんでした。</p>";
+
+  }
+
+}
+
+// HTML読み込み完了後に自動実行
+document.addEventListener("DOMContentLoaded", () => {
+  loadRankings();
+});

@@ -171,7 +171,48 @@ app.get("/api/search", async (req, res) => {
  
 });
  
- 
+
+// サイト起動時に表示するランキングを取得
+app.get("/api/rankings", async (req, res) => {
+  try {
+
+    const [trackData, artistData, albumData] =
+      await Promise.all([
+
+        // ポップジャンルの曲を5件取得
+        spotifyAPI(
+          `search?q=${encodeURIComponent("genre:pop")}&type=track&limit=5&market=JP`
+        ),
+
+        // ポップジャンルのアーティストを5件取得
+        spotifyAPI(
+          `search?q=${encodeURIComponent("genre:pop")}&type=artist&limit=5&market=JP`
+        ),
+
+        // 新着アルバムを5件取得
+        spotifyAPI(
+          `search?q=${encodeURIComponent("tag:new")}&type=album&limit=5&market=JP`
+        )
+
+      ]);
+
+    res.json({
+      tracks: trackData.tracks.items,
+      artists: artistData.artists.items,
+      albums: albumData.albums.items
+    });
+
+  } catch (error) {
+
+    console.error("ランキング取得エラー:", error);
+
+    res.status(500).json({
+      error: "ランキングの取得に失敗しました"
+    });
+
+  }
+});
+
 // サーバー起動
 app.listen(PORT, () => {
  
