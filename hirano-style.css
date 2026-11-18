@@ -233,3 +233,19 @@ h2 {
   max-width: 500px;
   text-align: left;
 }
+
+
+#gachaResetButton {
+  background: #777;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin: 10px;
+  font-size: 14px;
+}
+
+#gachaResetButton:hover {
+  background: #555;
+}

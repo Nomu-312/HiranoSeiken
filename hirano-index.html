@@ -34,7 +34,7 @@
  
     <!-- 曲 TOP5 -->
     <section>
-      <h2>🎵 曲 TOP5</h2>
+      <h2>🎵 J-pop TOP5</h2>
       <div id="popularSongs"></div>
     </section>
  
@@ -53,24 +53,19 @@
     <section id="gachaSection">
   <h2>🎰 今日の1曲ガチャ</h2>
 
-  <p>好きなジャンルを選んで、今日の1曲を引き当てよう！</p>
-
- <select id="gachaGenre">
-  <option value="j-pop">J-POP</option>
-  <option value="k-pop">K-POP</option>
-  <option value="pop">洋楽POP</option>
-  <option value="rock">ROCK</option>
-  <option value="jazz">JAZZ</option>
-  <option value="hip-hop">HIP-HOP</option>
-  <option value="indie">INDIE</option>
-  <option value="classical">CLASSICAL</option>
-</select>
+  <p>何が出るかはお楽しみ！今日の1曲を引き当てよう！</p>
 
   <br>
 
   <button id="gachaButton" onclick="playGacha()">
     🎵 ガチャを回す！
   </button>
+  //これはけす
+ <button
+  id="gachaResetButton"
+  onclick="resetGacha()">
+  🔄 1日1回制限をリセット
+</button>
 
   <div id="gachaResult"></div>
 

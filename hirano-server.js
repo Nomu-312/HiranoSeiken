@@ -91,39 +91,38 @@ async function getAccessToken() {
  
  
 // Spotify APIを呼び出す
+
 async function spotifyAPI(endpoint) {
- 
-  const token =
-    await getAccessToken();
- 
- 
-  const response =
-    await fetch(
+  try {
+    const token = await getAccessToken();
+
+    const response = await fetch(
       `https://api.spotify.com/v1/${endpoint}`,
       {
         headers: {
-          "Authorization":
-            `Bearer ${token}`
+          "Authorization": `Bearer ${token}`
         }
       }
     );
- 
- 
-  if (!response.ok) {
- 
-    const text =
-      await response.text();
- 
-    console.error(text);
- 
-    throw new Error(
-      "Spotify APIエラー"
-    );
- 
+
+    if (!response.ok) {
+      const details = await response.text();
+
+      console.error("Spotify APIの詳細エラー:");
+      console.error("ステータス:", response.status);
+      console.error("内容:", details);
+
+      throw new Error(
+        `Spotify APIエラー: ${response.status}`
+      );
+    }
+
+    return await response.json();
+
+  } catch (error) {
+    console.error("Spotify API通信エラー:", error);
+    throw error;
   }
- 
- 
-  return await response.json();
 }
  
  
@@ -172,181 +171,86 @@ app.get("/api/search", async (req, res) => {
 });
  
 
-// サイト起動時に表示するランキングを取得
+// 曲・アーティスト・アルバムランキング
 app.get("/api/rankings", async (req, res) => {
   try {
-
     const [trackData, artistData, albumData] =
       await Promise.all([
-
-        // ポップジャンルの曲を5件取得
+        // 曲を取得
         spotifyAPI(
-          `search?q=${encodeURIComponent("genre:pop")}&type=track&limit=5&market=JP`
+  `search?q=${encodeURIComponent("J-POP")}&type=track&limit=10&market=JP`
+),
+
+        // アーティストを取得
+        spotifyAPI(
+          `search?q=${encodeURIComponent("popular artists")}&type=artist&limit=10&market=JP`
         ),
 
-        // ポップジャンルのアーティストを5件取得
+        // アルバムを取得
         spotifyAPI(
-          `search?q=${encodeURIComponent("genre:pop")}&type=artist&limit=5&market=JP`
-        ),
-
-        // 新着アルバムを5件取得
-        spotifyAPI(
-          `search?q=${encodeURIComponent("tag:new")}&type=album&limit=5&market=JP`
+          `search?q=${encodeURIComponent("popular albums")}&type=album&limit=10&market=JP`
         )
-
       ]);
 
-    res.json({
-      tracks: trackData.tracks.items,
-      artists: artistData.artists.items,
-      albums: albumData.albums.items
-    });
+    const tracks = (trackData.tracks?.items || [])
+      .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+      .slice(0, 5);
+
+    const artists = (artistData.artists?.items || [])
+      .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+      .slice(0, 5);
+
+    const albums = (albumData.albums?.items || [])
+      .slice(0, 5);
+
+    res.json({ tracks, artists, albums });
 
   } catch (error) {
-
     console.error("ランキング取得エラー:", error);
 
     res.status(500).json({
       error: "ランキングの取得に失敗しました"
     });
-
   }
 });
 
-// ランダム曲ガチャAPI
+
+// ランダムガチャ
 app.get("/api/gacha", async (req, res) => {
-
   try {
-
+    // 4ジャンルからランダムに1つ選ぶ
     const genres = [
-      "pop",
-      "rock",
-      "jazz",
-      "classical",
-      "country",
-      "electronic",
-      "folk",
-      "metal",
-      "reggae",
-      "soul",
-      "hip-hop",
-      "disco",
-      "blues",
-      "indie"
+      { name: "J-POP", keyword: "J-pop", market: "JP" },
+      { name: "K-POP", keyword: "K-pop", market: "JP" },
+      { name: "HIP-HOP", keyword: "hip hop", market: "US" },
+      { name: "洋楽", keyword: "English pop", market: "US" }
     ];
 
-    // 候補曲を保存する配列
-    let allTracks = [];
+    const selectedGenre =
+      genres[Math.floor(Math.random() * genres.length)];
 
-    // 10回ランダム検索
-    for (let i = 0; i < 10; i++) {
-
-      // ジャンルをランダムに選択
-      const genreIndex =
-        Math.floor(Math.random() * genres.length);
-
-      const genre = genres[genreIndex];
-
-      // 検索位置をランダムに決定
-      const offset =
-        Math.floor(Math.random() * 1000);
-
-      const params = new URLSearchParams({
-        q: `genre:${genre}`,
-        type: "track",
-        limit: "10",
-        offset: String(offset),
-        market: "JP"
-      });
-
-      const data = await spotifyAPI(
-        `search?${params.toString()}`
-      );
-
-      allTracks.push(...data.tracks.items);
-
-    }
-
-    // 重複する曲を除外
-    const uniqueTracks = [
-      ...new Map(
-        allTracks.map(track => [track.id, track])
-      ).values()
-    ];
-
-    if (uniqueTracks.length === 0) {
-      return res.status(404).json({
-        error: "曲が見つかりませんでした"
-      });
-    }
-
-    // 乱数で1曲を抽選
-    const randomIndex =
-      Math.floor(Math.random() * uniqueTracks.length);
-
-    const selectedTrack =
-      uniqueTracks[randomIndex];
-
-    res.json(selectedTrack);
-
-  } catch (error) {
-
-    console.error("ガチャエラー:", error);
-
-    res.status(500).json({
-      error: "ガチャに失敗しました"
-    });
-
-  }
-
-});
-// ジャンル別ガチャ
-app.get("/api/gacha", async (req, res) => {
-  try {
-const allowedGenres = [
-  "j-pop",
-  "k-pop",
-  "pop",
-  "rock",
-  "jazz",
-  "hip-hop",
-  "indie",
-  "classical"
-];
-
-    const genre = req.query.genre;
-
-    // ジャンルの確認
-    if (!allowedGenres.includes(genre)) {
-      return res.status(400).json({
-        error: "正しいジャンルを選択してください"
-      });
-    }
-
-    // ランダムな検索位置
-    const randomOffset = Math.floor(Math.random() * 50);
-
+    // 選ばれたジャンルの曲を検索
     const data = await spotifyAPI(
-      `search?q=${encodeURIComponent("genre:" + genre)}&type=track&limit=50&offset=${randomOffset}&market=JP`
+      `search?q=${encodeURIComponent(selectedGenre.keyword)}&type=track&limit=10&market=${selectedGenre.market}`
     );
 
     const tracks = data.tracks?.items || [];
 
     if (tracks.length === 0) {
-      return res.status(404).json({
-        error: "このジャンルの曲を取得できませんでした"
-      });
+      throw new Error("曲が見つかりませんでした");
     }
 
-    // ランダムに1曲選ぶ
-    const randomIndex = Math.floor(Math.random() * tracks.length);
-    const selectedTrack = tracks[randomIndex];
+    // 検索結果からランダムに1曲選ぶ
+    const randomTrack =
+      tracks[Math.floor(Math.random() * tracks.length)];
 
-    res.json(selectedTrack);
+    res.json({
+      ...randomTrack,
+      genre: selectedGenre.name
+    });
 
   } catch (error) {
-    console.error("ガチャエラー:", error);
-
+    console.error("ガチャ取得エラー:", error);
     res.status(500).json({
       error: "ガチャの曲を取得できませんでした"
     });
@@ -355,9 +259,5 @@ const allowedGenres = [
 
 // サーバー起動
 app.listen(PORT, () => {
- 
-  console.log(
-    `http://localhost:${PORT}`
-  );
- 
+  console.log(`http://localhost:${PORT}`);
 });

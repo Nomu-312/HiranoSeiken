@@ -303,28 +303,25 @@ function escapeHTML(value) {
 }
 
 // サイト起動時にランキングを自動取得
+
 async function loadRankings() {
-
   try {
-
     const response = await fetch("/api/rankings");
-
-    if (!response.ok) {
-      throw new Error("ランキング取得に失敗しました");
-    }
 
     const data = await response.json();
 
-    // 取得したデータからTOP5を表示
+    if (!response.ok) {
+      throw new Error(data.error || "ランキング取得に失敗しました");
+    }
+
     createRankings({
-      tracks: { items: data.tracks },
-      artists: { items: data.artists },
-      albums: { items: data.albums }
+      tracks: { items: data.tracks || [] },
+      artists: { items: data.artists || [] },
+      albums: { items: data.albums || [] }
     });
 
   } catch (error) {
-
-    console.error(error);
+    console.error("ランキング表示エラー:", error);
 
     document.getElementById("popularSongs").innerHTML =
       "<p>曲ランキングを取得できませんでした。</p>";
@@ -334,9 +331,7 @@ async function loadRankings() {
 
     document.getElementById("popularAlbums").innerHTML =
       "<p>アルバムランキングを取得できませんでした。</p>";
-
   }
-
 }
 
 // HTML読み込み完了後に自動実行
@@ -498,24 +493,15 @@ async function playGacha() {
     }
 
     // 保存する曲情報
-    const result = {
-
-      id: track.id,
-
-      name: track.name,
-
-      artists: track.artists.map(a => a.name),
-
-      image:
-        track.album.images.length > 0
-          ? track.album.images[0].url
-          : "",
-
-      url: track.external_urls.spotify,
-
-      date: getTodayDate()
-
-    };
+   const result = {
+  id: Date.now(),
+  name: track.name,
+  artists: track.artists.map(a => a.name),
+  image: track.album.images[0]?.url || "",
+  url: track.external_urls.spotify,
+  genre: track.genre,
+  date: getTodayDate()
+};
 
     // 履歴に追加
     history.unshift(result);
@@ -577,11 +563,35 @@ function loadGacha() {
 
 // ボタンにイベントを設定
 document.addEventListener("DOMContentLoaded", () => {
-
-  document
-    .getElementById("gachaButton")
-    .addEventListener("click", playGacha);
-
   loadGacha();
-
 });
+// 1日1回制限をリセット
+function resetGacha() {
+  if (!confirm("今日のガチャ制限をリセットしますか？")) {
+    return;
+  }
+
+  // 保存されている履歴を取得
+  let history = getGachaHistory();
+
+  // 今日の履歴だけ削除（過去の履歴は残す）
+  const today = getTodayDate();
+
+  history = history.filter(item => item.date !== today);
+
+  // 履歴を保存
+  localStorage.setItem("gachaHistory", JSON.stringify(history));
+
+  // ガチャ画面を更新
+  const button = document.getElementById("gachaButton");
+  const result = document.getElementById("gachaResult");
+
+  button.disabled = false;
+  button.textContent = "🎵 ガチャを回す！";
+
+  result.innerHTML = "";
+
+  displayGachaHistory();
+
+  alert("今日のガチャ制限をリセットしました！");
+}
