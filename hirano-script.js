@@ -370,26 +370,26 @@ function getTodayDate() {
 
 // ガチャ結果を表示
 function displayGachaResult(track) {
+  const container = document.getElementById("gachaResult");
+  const image = track.image || "";
 
-  const container =
-    document.getElementById("gachaResult");
+  const ratings = JSON.parse(
+    localStorage.getItem("gachaRatings") || "{}"
+  );
 
-  const image =
-    track.image || "";
+  const rating = ratings[track.id];
 
   container.innerHTML = `
     <div class="song-card">
-
       <h3>🎉 今日の当選曲！</h3>
 
       ${
         image
-          ? `<img src="${escapeHTML(image)}" alt="ジャケット画像">`
+          ? '<img src="${escapeHTML(image)}" alt="ジャケット画像">'
           : ""
       }
 
       <h3>${escapeHTML(track.name)}</h3>
-
       <p>${escapeHTML(track.artists.join(", "))}</p>
 
       <a href="${escapeHTML(track.url)}"
@@ -398,9 +398,171 @@ function displayGachaResult(track) {
         Spotifyで聴く
       </a>
 
+      <div class="rating-buttons">
+        <button id="likeButton"
+          class="${rating === "like" ? "selected" : ""}">
+          👍 いいね
+        </button>
+
+        <button id="dislikeButton"
+          class="${rating === "dislike" ? "selected" : ""}">
+          👎 よくないね
+        </button>
+      </div>
+
+      <p id="ratingMessage">
+        ${
+          rating === "like"
+            ? "お気に入りに登録済み！"
+            : rating === "dislike"
+              ? "よくないねを登録済み"
+              : "この曲の評価を選んでね"
+        }
+      </p>
     </div>
   `;
 
+  document.getElementById("likeButton")
+    .addEventListener("click", () => {
+      rateGachaTrack(track.id, "like");
+    });
+
+  document.getElementById("dislikeButton")
+    .addEventListener("click", () => {
+      rateGachaTrack(track.id, "dislike");
+    });
+}
+// 曲の評価を保存
+function rateGachaTrack(trackId, rating) {
+  const history = getGachaHistory();
+
+  const track = history.find(
+    item => String(item.id) === String(trackId)
+  );
+
+  if (!track) return;
+
+  const ratings = JSON.parse(
+    localStorage.getItem("gachaRatings") || "{}"
+  );
+
+  let likedSongs = JSON.parse(
+    localStorage.getItem("likedSongs") || "[]"
+  );
+
+  ratings[trackId] = rating;
+
+  // いったんお気に入りから削除
+  likedSongs = likedSongs.filter(
+    item => String(item.id) !== String(trackId)
+  );
+
+  // いいねの場合だけ追加
+  if (rating === "like") {
+    likedSongs.unshift(track);
+  }
+
+  localStorage.setItem(
+    "gachaRatings",
+    JSON.stringify(ratings)
+  );
+
+  localStorage.setItem(
+    "likedSongs",
+    JSON.stringify(likedSongs)
+  );
+
+  displayGachaResult(track);
+  displayLikedPlaylist();
+}
+
+
+// お気に入りプレイリストを表示
+function displayLikedPlaylist() {
+  const container =
+    document.getElementById("likedPlaylist");
+
+  if (!container) return;
+
+  const likedSongs = JSON.parse(
+    localStorage.getItem("likedSongs") || "[]"
+  );
+
+  container.innerHTML = "";
+
+  if (likedSongs.length === 0) {
+    container.innerHTML =
+      "<p>まだお気に入りの曲はありません。</p>";
+    return;
+  }
+
+  likedSongs.forEach(track => {
+    container.innerHTML += `
+      <div class="ranking-item">
+        ${
+          track.image
+            ? '<img src="${escapeHTML(track.image)}" alt="">'
+            : ""
+        }
+
+        <div>
+          <strong>${escapeHTML(track.name)}</strong>
+          <p>${escapeHTML(track.artists.join(", "))}</p>
+
+          <a href="${escapeHTML(track.url)}"
+             target="_blank"
+             rel="noopener noreferrer">
+            Spotifyで聴く
+          </a>
+
+          <br>
+
+          <button onclick="removeLikedSong('${track.id}')">
+            お気に入りから削除
+          </button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+
+// お気に入りから削除
+function removeLikedSong(trackId) {
+  let likedSongs = JSON.parse(
+    localStorage.getItem("likedSongs") || "[]"
+  );
+
+  likedSongs = likedSongs.filter(
+    item => String(item.id) !== String(trackId)
+  );
+
+  localStorage.setItem(
+    "likedSongs",
+    JSON.stringify(likedSongs)
+  );
+
+  const ratings = JSON.parse(
+    localStorage.getItem("gachaRatings") || "{}"
+  );
+
+  delete ratings[trackId];
+
+  localStorage.setItem(
+    "gachaRatings",
+    JSON.stringify(ratings)
+  );
+
+  displayLikedPlaylist();
+
+  // 現在のガチャ結果も更新
+  const todayTrack = getGachaHistory().find(
+    item => item.date === getTodayDate()
+  );
+
+  if (todayTrack) {
+    displayGachaResult(todayTrack);
+  }
 }
 
 
@@ -595,3 +757,6 @@ function resetGacha() {
 
   alert("今日のガチャ制限をリセットしました！");
 }
+document.addEventListener("DOMContentLoaded", () => {
+  displayLikedPlaylist();
+});
